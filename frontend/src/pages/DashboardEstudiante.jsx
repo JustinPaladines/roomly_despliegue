@@ -19,6 +19,11 @@ const DashboardEstudiante = () =>{
         titulo: "Nueva Reserva",
         desc: "Selecciona un cubículo o sala de estudio disponible.",
         ruta: "/estudiante/reservas"
+    },
+    {
+        titulo: "Asistente IA",
+        desc: "Consulta dudas sobre biblioteca, libros y el sistema de reservas.",
+        ruta: "/estudiante/chat"
     }
     ];
 

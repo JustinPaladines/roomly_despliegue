@@ -32,6 +32,9 @@ import BuscarEspacios from "./pages/BuscarEspacios";
 // gestionar bibliotecas (solo admin)
 import GestionBibliotecas from "./pages/GestionBibliotecas";
 
+// chat IA
+import ChatIA from "./pages/ChatIA";
+
 
 export default function App() {
   return (
@@ -74,6 +77,8 @@ export default function App() {
         <Route path="/estudiante/reservas" element={<GestionReservas />} />
         <Route path="/estudiante/mis-reservas" element={<MisReservas />} />
         <Route path="/estudiante/buscar-espacios" element={<BuscarEspacios />} />
+        
+        <Route path="/estudiante/chat" element={<ChatIA />} />
       </Route>
 
       {/* ruta de perfil por usuarios */}

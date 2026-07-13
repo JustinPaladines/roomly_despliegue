@@ -12,7 +12,7 @@ export default function ChatBox() {
                 {
                     role: "assistant",
                     content:
-                        "¡Hola!, Soy Bibliot .\n\nPuedo ayudarte con:\n\n• Recomendaciones de libros universitarios.\n• Normas APA e IEEE.\n• Técnicas de estudio.\n• Investigación.\n• Funcionamiento del sistema de reservas."
+                        "¡Hola!, Soy Bibliot 🦉 .\n\nPuedo ayudarte con:\n\n• Recomendaciones de libros universitarios.\n• Normas APA e IEEE.\n• Técnicas de estudio.\n• Investigación.\n• Funcionamiento del sistema de reservas."
                 }
             ];
     });
@@ -74,7 +74,7 @@ export default function ChatBox() {
     function limpiarChat() {
         const inicio = [
             {
-                role: "assistant", content: "¡Hola! Soy Bibliot 🦉\n\n¿En qué puedo ayudarte hoy?"
+                role: "assistant", content: "¡Hola! Soy Bibliot 🦉 \n\n¿En qué puedo ayudarte hoy?"
             }
         ];
         setMessages(inicio);

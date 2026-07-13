@@ -14,8 +14,16 @@ const DashboardBibliotecario = () => {
         <div className="dashboard-container">
         
             <div className="dashboard-header">
-                <h2>Panel de Bibliotecario</h2>
-                <UserMenu />
+                        <div>
+                            <h1 className="dashboard-title">
+                                Panel de Bibliotecario
+                            </h1>
+            
+                            <p className="welcome-text">
+                                Hola, ¿qué deseas hacer hoy?
+                            </p>
+                        </div>
+                    <UserMenu />
             </div>
 
             <p className="welcome-text">Bienvenido al sistema de gestión de Biblioteca</p>

@@ -30,11 +30,18 @@ const DashboardEstudiante = () =>{
     return (
         <div className="dashboard-container">
             <div className="dashboard-header">
-                    <h2>Panel de Estudiante</h2>
-                    <UserMenu />
-                </div>
+            <div>
+                <h1 className="dashboard-title">
+                    Panel de Estudiante
+                </h1>
 
-            <p className="welcome-text">Hola!, ¿Qué deseas hacer hoy?</p>
+                <p className="welcome-text">
+                    Hola, ¿qué deseas hacer hoy?
+                </p>
+            </div>
+            <UserMenu />
+        </div>
+
             <div className="modules-grid">
                 {modulos.map((mod, index)=> (
                     <div key={index} className="module-card">

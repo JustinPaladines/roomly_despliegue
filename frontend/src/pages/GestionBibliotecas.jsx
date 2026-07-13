@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../services/supabase";
+import "../styles/global.css";
 
 const GestionBibliotecas = () => {
     const navigate = useNavigate();
@@ -161,223 +162,139 @@ const GestionBibliotecas = () => {
     };
 
     return (
-        <div className="gestion-container">
-            <style>{`
-                .gestion-container {
-                    max-width: 1100px;
-                    margin: 0 auto;
-                    padding: 30px;
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    text-align: center;
-                    color: #333;
-                }
+    <div className="page-container">
+        <h1 className="page-title">
+            Gestión de Bibliotecas
+        </h1>
 
-                .titulo-principal {
-                    color: #512da8;
-                    margin-bottom: 25px;
-                    font-size: 2.2rem;
-                }
-
-                .formulario-gestion {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 12px;
-                    max-width: 450px;
-                    margin: 25px auto;
-                    background: #f8f9fa;
-                    padding: 20px;
-                    border-radius: 8px;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-                }
-
-                .formulario-gestion input {
-                    padding: 12px;
-                    border: 1px solid #ccc;
-                    border-radius: 6px;
-                    font-size: 14px;
-                }
-
-                .btn {
-                    padding: 10px 18px;
-                    border: none;
-                    border-radius: 6px;
-                    cursor: pointer;
-                    font-weight: 600;
-                    color: white;
-                    font-size: 14px;
-                    margin: 4px;
-                }
-
-                .btn-morado {
-                    background-color: #673ab7;
-                }
-
-                .btn-verde {
-                    background-color: #2e7d32;
-                }
-
-                .btn-rojo {
-                    background-color: #d32f2f;
-                }
-
-                .contenedor-tabla {
-                    overflow-x: auto;
-                    margin-top: 20px;
-                }
-
-                .tabla {
-                    width: 100%;
-                    border-collapse: collapse;
-                    background-color: white;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-                }
-
-                .tabla th {
-                    background-color: #673ab7;
-                    color: white;
-                    padding: 14px;
-                }
-
-                .tabla td {
-                    padding: 14px;
-                    border-bottom: 1px solid #eee;
-                }
-
-                .tabla tbody tr:nth-child(even) {
-                    background-color: #fcfaff;
-                }
-
-                .tabla tbody tr:hover {
-                    background-color: #f1f8e9;
-                }
-            `}</style>
-
-            <h1 className="titulo-principal">
-                Gestión de Bibliotecas
-            </h1>
-
+        <div className="page-actions">
             <button
-                className="btn btn-rojo"
+                className="btn btn-danger btn-back"
                 onClick={() => navigate(-1)}
             >
                 Regresar
             </button>
-
-            <form
-                className="formulario-gestion"
-                onSubmit={
-                    modoEdicion
-                        ? actualizarBiblioteca
-                        : crearBiblioteca
-                }
-            >
-                <input
-                    type="text"
-                    placeholder="Nombre"
-                    value={nombre}
-                    onChange={(e) => setNombre(e.target.value)}
-                />
-
-                <input
-                    type="text"
-                    placeholder="Ubicación"
-                    value={ubicacion}
-                    onChange={(e) => setUbicacion(e.target.value)}
-                />
-
-                <input
-                    type="time"
-                    value={horarioApertura}
-                    onChange={(e) =>
-                        setHorarioApertura(e.target.value)
-                    }
-                />
-
-                <input
-                    type="time"
-                    value={horarioCierre}
-                    onChange={(e) =>
-                        setHorarioCierre(e.target.value)
-                    }
-                />
-
-                <button
-                    type="submit"
-                    className={`btn ${
-                        modoEdicion
-                            ? "btn-verde"
-                            : "btn-morado"
-                    }`}
-                >
-                    {modoEdicion
-                        ? "Actualizar Biblioteca"
-                        : "Crear Biblioteca"}
-                </button>
-
-                {modoEdicion && (
-                    <button
-                        type="button"
-                        className="btn btn-rojo"
-                        onClick={limpiarFormulario}
-                    >
-                        Cancelar
-                    </button>
-                )}
-            </form>
-
-            <div className="contenedor-tabla">
-                <table className="tabla">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Ubicación</th>
-                            <th>Apertura</th>
-                            <th>Cierre</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {!loading &&
-                            bibliotecas.map((biblioteca) => (
-                                <tr key={biblioteca.id}>
-                                    <td>{biblioteca.id}</td>
-                                    <td>{biblioteca.nombre}</td>
-                                    <td>{biblioteca.ubicacion}</td>
-                                    <td>{biblioteca.horario_apertura}</td>
-                                    <td>{biblioteca.horario_cierre}</td>
-                                    <td>{biblioteca.estado}</td>
-
-                                    <td>
-                                        <button
-                                            className="btn btn-verde"
-                                            onClick={() =>
-                                                cargarEdicion(biblioteca)
-                                            }
-                                        >
-                                            Editar
-                                        </button>
-
-                                        <button
-                                            className="btn btn-rojo"
-                                            onClick={() =>
-                                                eliminarBiblioteca(
-                                                    biblioteca.id
-                                                )
-                                            }
-                                        >
-                                            Eliminar
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                    </tbody>
-                </table>
-            </div>
         </div>
-    );
-};
+
+        <form
+            className="form-card formulario-gestion"
+            onSubmit={
+                modoEdicion
+                    ? actualizarBiblioteca
+                    : crearBiblioteca
+            }
+        >
+            <input
+                className="form-input"
+                type="text"
+                placeholder="Nombre"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+            />
+
+            <input
+                className="form-input"
+                type="text"
+                placeholder="Ubicación"
+                value={ubicacion}
+                onChange={(e) => setUbicacion(e.target.value)}
+            />
+
+            <input
+                className="form-input"
+                type="time"
+                value={horarioApertura}
+                onChange={(e) =>
+                    setHorarioApertura(e.target.value)
+                }
+            />
+
+            <input
+                className="form-input"
+                type="time"
+                value={horarioCierre}
+                onChange={(e) =>
+                    setHorarioCierre(e.target.value)
+                }
+            />
+
+            <button
+                type="submit"
+                className={`btn ${
+                    modoEdicion
+                        ? "btn-success"
+                        : "btn-primary"
+                }`}
+            >
+                {modoEdicion
+                    ? "Actualizar Biblioteca"
+                    : "Crear Biblioteca"}
+            </button>
+
+            {modoEdicion && (
+                <button
+                    type="button"
+                    className="btn btn-danger"
+                    onClick={limpiarFormulario}
+                >
+                    Cancelar
+                </button>
+            )}
+        </form>
+
+        <div className="table-container">
+            <table className="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Ubicación</th>
+                        <th>Apertura</th>
+                        <th>Cierre</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {!loading &&
+                        bibliotecas.map((biblioteca) => (
+                            <tr key={biblioteca.id}>
+                                <td>{biblioteca.id}</td>
+                                <td>{biblioteca.nombre}</td>
+                                <td>{biblioteca.ubicacion}</td>
+                                <td>{biblioteca.horario_apertura}</td>
+                                <td>{biblioteca.horario_cierre}</td>
+                                <td>{biblioteca.estado}</td>
+
+                                <td>
+                                    <button
+                                        className="btn btn-success"
+                                        onClick={() =>
+                                            cargarEdicion(biblioteca)
+                                        }
+                                    >
+                                        Editar
+                                    </button>
+
+                                    <button
+                                        className="btn btn-danger spacer-xs"
+                                        onClick={() =>
+                                            eliminarBiblioteca(
+                                                biblioteca.id
+                                            )
+                                        }
+                                    >
+                                        Eliminar
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                </tbody>
+            </table>
+        </div>
+    </div>
+);
+}
 
 export default GestionBibliotecas;

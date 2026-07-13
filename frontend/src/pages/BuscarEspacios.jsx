@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../services/supabase";
+import "../styles/buscarEspacios.css";
+import "../styles/global.css";
 
 const BuscarEspacios = () => {
     const navigate = useNavigate();
@@ -62,117 +64,13 @@ const BuscarEspacios = () => {
     };
 
     return (
-        <div className="gestion-container">
-            <style>{`
-                .gestion-container {
-                    max-width: 1100px;
-                    margin: 0 auto;
-                    padding: 30px;
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    text-align: center;
-                    color: #333;
-                }
-
-                .titulo-principal {
-                    color: #512da8;
-                    margin-bottom: 25px;
-                    font-size: 2.2rem;
-                }
-
-                .filtros {
-                    display: flex;
-                    flex-wrap: wrap;
-                    gap: 12px;
-                    justify-content: center;
-                    margin: 25px 0;
-                }
-
-                .filtros input {
-                    padding: 12px;
-                    border: 1px solid #ccc;
-                    border-radius: 6px;
-                    min-width: 220px;
-                    font-size: 14px;
-                }
-
-                .btn {
-                    padding: 10px 18px;
-                    border: none;
-                    border-radius: 6px;
-                    cursor: pointer;
-                    font-weight: 600;
-                    color: white;
-                    font-size: 14px;
-                    transition: opacity 0.2s;
-                    margin: 4px;
-                }
-
-                .btn:hover {
-                    opacity: 0.9;
-                }
-
-                .btn-morado {
-                    background-color: #673ab7;
-                }
-
-                .btn-verde {
-                    background-color: #2e7d32;
-                }
-
-                .btn-rojo {
-                    background-color: #d32f2f;
-                }
-
-                .contenedor-tabla {
-                    overflow-x: auto;
-                    margin-top: 20px;
-                }
-
-                .tabla-espacios {
-                    width: 100%;
-                    border-collapse: collapse;
-                    background-color: #ffffff;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-                    border-radius: 8px;
-                    overflow: hidden;
-                }
-
-                .tabla-espacios th {
-                    background-color: #673ab7;
-                    color: white;
-                    padding: 14px;
-                    font-weight: 600;
-                    text-align: center;
-                }
-
-                .tabla-espacios td {
-                    padding: 14px;
-                    border-bottom: 1px solid #eeeeee;
-                    text-align: center;
-                    font-size: 14px;
-                }
-
-                .tabla-espacios tbody tr:nth-child(even) {
-                    background-color: #fcfaff;
-                }
-
-                .tabla-espacios tbody tr:hover {
-                    background-color: #f1f8e9;
-                }
-
-                .cargando {
-                    font-size: 16px;
-                    color: #666;
-                    font-style: italic;
-                }
-            `}</style>
-
-            <h1 className="titulo-principal">
+        <div className="page-container">
+            <h1 className="page-title">
                 Buscar Espacios
             </h1>
 
             <button
-                className="btn btn-rojo"
+                className="btn btn-danger btn-back"
                 onClick={() => navigate(-1)}
             >
                 Regresar
@@ -180,6 +78,7 @@ const BuscarEspacios = () => {
 
             <div className="filtros">
                 <input
+                    className="form-input"
                     type="text"
                     placeholder="Biblioteca"
                     value={biblioteca}
@@ -187,6 +86,7 @@ const BuscarEspacios = () => {
                 />
 
                 <input
+                    className="form-input"
                     type="number"
                     min="1"
                     placeholder="Capacidad mínima"
@@ -197,14 +97,14 @@ const BuscarEspacios = () => {
                 />
 
                 <button
-                    className="btn btn-morado"
+                    className="btn btn-primary"
                     onClick={buscarEspacios}
                 >
                     Buscar
                 </button>
 
                 <button
-                    className="btn btn-verde"
+                    className="btn btn-success"
                     onClick={limpiarFiltros}
                 >
                     Limpiar
@@ -212,12 +112,12 @@ const BuscarEspacios = () => {
             </div>
 
             {loading ? (
-                <p className="cargando">
+                <p className="loading">
                     Cargando espacios...
                 </p>
             ) : (
-                <div className="contenedor-tabla">
-                    <table className="tabla-espacios">
+                <div className="table-container">
+                    <table className="data-table">
                         <thead>
                             <tr>
                                 <th>ID</th>

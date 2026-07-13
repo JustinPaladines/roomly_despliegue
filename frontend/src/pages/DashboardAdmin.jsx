@@ -15,8 +15,16 @@ const DashboardAdmin = () =>{
     <div className="dashboard-container">
 
     <div className="dashboard-header">
-        <h2>Panel de Administrador</h2>
-        <UserMenu />
+                <div>
+                    <h1 className="dashboard-title">
+                        Panel de Administrador
+                    </h1>
+    
+                    <p className="welcome-text">
+                        Hola, ¿qué deseas hacer hoy?
+                    </p>
+                </div>
+                <UserMenu />
     </div>
 
         <p className="welcome-text">Bienvenido, Administrador</p>

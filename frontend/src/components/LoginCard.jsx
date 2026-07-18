@@ -34,6 +34,10 @@ export default function LoginCard() {
     return true;
   };
 
+  console.log("ENV:", import.meta.env);
+  console.log("VITE_API_URL:", import.meta.env.VITE_API_URL);
+  console.log("API_URL:", API_URL);
+
   const handleLogin = async () => {
     setMensaje("");
     setCargando(true);

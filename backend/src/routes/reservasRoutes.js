@@ -1,3 +1,4 @@
+//backend/src/routes/reservasRoutes.js
 const express = require("express");
 const router = express.Router();
 const { supabaseAdmin } = require("../supabaseClients");

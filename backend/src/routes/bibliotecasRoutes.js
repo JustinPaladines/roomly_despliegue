@@ -1,3 +1,4 @@
+// backend/src/routes/bibliotecasRoutes.js
 const express = require("express");
 const router = express.Router();
 

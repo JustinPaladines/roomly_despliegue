@@ -1,3 +1,4 @@
+// backend/src/routes/espaciosRoutes.js:
 const express = require("express");
 const router = express.Router();
 const { supabaseAdmin } = require("../supabaseClients");

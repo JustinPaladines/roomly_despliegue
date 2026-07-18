@@ -1,55 +1,39 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { supabase } from "../services/supabase";
 
 const ProtectedRoute = ({ allowedRoles }) => {
-const [loading, setLoading] = useState(true);
-const [userRole, setUserRole] = useState(null);
-const [authenticated, setAuthenticated] = useState(false);
+  // obtener datos almacenados después del login
+   const token = localStorage.getItem("token");
+   const userString = localStorage.getItem("user");
 
-   useEffect(() => {
-      const verificarUsuario = async () => {
-         const {
-         data: { user },
-         } = await supabase.auth.getUser();
-
-         if (!user) {
-         setAuthenticated(false);
-         setLoading(false);
-         return;
-         }
-
-         setAuthenticated(true);
-
-         const { data, error } = await supabase
-         .from("usuarios")
-         .select("rol")
-         .eq("id", user.id)
-         .single();
-
-         if (!error && data) {
-         setUserRole(data.rol);
-         }
-
-         setLoading(false);
-      };
-
-      verificarUsuario();
-   }, []);
-
-   if (loading) {
-      return <p>Cargando...</p>;
-   }
-
-   if (!authenticated) {
+   // si no hay token o usuario volver al login
+   if (!token || !userString) {
       return <Navigate to="/login" replace />;
    }
 
-   if (!allowedRoles.includes(userRole)) {
+   let user;
+
+   try {
+      user = JSON.parse(userString);
+   } catch (error) {
+      // Si el JSON está corrupto, limpiar almacenamiento
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+
+      return <Navigate to="/login" replace />;
+   }
+
+   // verificar que el usuario tenga rol
+   if (!user?.rol) {
+      return <Navigate to="/login" replace />;
+   }
+
+   // verificar permisos
+   if (!allowedRoles.includes(user.rol)) {
       return <Navigate to="/unauthorized" replace />;
    }
 
+   // todo correcto
    return <Outlet />;
-   };
+};
 
 export default ProtectedRoute;

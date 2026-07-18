@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../services/supabase";
+import api from "../services/api";
 import "../styles/gestionEspacios.css";
 import "../styles/global.css";
 
@@ -24,18 +24,15 @@ const GestionEspacios = () => {
   }, []);
 
   const obtenerEspacios = async () => {
-    const { data, error } = await supabase
-      .from("espacios")
-      .select("*")
-      .order("id", { ascending: true });
-
-    if (error) {
+    try {
+      const data = await api("/api/espacios");
+      setEspacios(data);
+    } catch (error) {
       console.error(error);
-      return;
+      alert("Error al cargar los espacios");
+    } finally {
+      setLoading(false);
     }
-
-    setEspacios(data);
-    setLoading(false);
   };
 
   const validarFormulario = () => {
@@ -92,24 +89,25 @@ const GestionEspacios = () => {
 
     if (!validarFormulario()) return;
 
-    const { error } = await supabase.from("espacios").insert([
-      {
-        nombre,
-        descripcion,
-        capacidad: Number(capacidad),
-        ubicacion,
-        estado: "disponible",
-        biblioteca,
-      },
-    ]);
+    try {
+      await api("/api/espacios", {
+        method: "POST",
+        body: JSON.stringify({
+          nombre,
+          descripcion,
+          capacidad: Number(capacidad),
+          ubicacion,
+          estado: "disponible",
+          biblioteca,
+        }),
+      });
 
-    if (error) {
-      alert(error.message);
-      return;
+      limpiarFormulario();
+      obtenerEspacios();
+    } catch (error) {
+      console.error(error);
+      alert(error.message || "Error al crear el espacio");
     }
-
-    limpiarFormulario();
-    obtenerEspacios();
   };
 
   const cargarEdicion = (espacio) => {
@@ -128,24 +126,24 @@ const GestionEspacios = () => {
 
     if (!validarFormulario()) return;
 
-    const { error } = await supabase
-      .from("espacios")
-      .update({
-        nombre,
-        descripcion,
-        capacidad: Number(capacidad),
-        ubicacion,
-        biblioteca,
-      })
-      .eq("id", espacioEditando);
+    try {
+      await api(`/api/espacios/${espacioEditando}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          nombre,
+          descripcion,
+          capacidad: Number(capacidad),
+          ubicacion,
+          biblioteca,
+        }),
+      });
 
-    if (error) {
-      alert(error.message);
-      return;
+      limpiarFormulario();
+      obtenerEspacios();
+    } catch (error) {
+      console.error(error);
+      alert(error.message || "Error al actualizar el espacio");
     }
-
-    limpiarFormulario();
-    obtenerEspacios();
   };
 
   const eliminarEspacio = async (id) => {
@@ -155,17 +153,16 @@ const GestionEspacios = () => {
 
     if (!confirmar) return;
 
-    const { error } = await supabase
-      .from("espacios")
-      .delete()
-      .eq("id", id);
+    try {
+      await api(`/api/espacios/${id}`, {
+        method: "DELETE",
+      });
 
-    if (error) {
-      alert(error.message);
-      return;
+      obtenerEspacios();
+    } catch (error) {
+      console.error(error);
+      alert(error.message || "Error al eliminar el espacio");
     }
-
-    obtenerEspacios();
   };
 
   return (
@@ -287,7 +284,8 @@ const GestionEspacios = () => {
                   <td>{espacio.estado}</td>
                   <td>{espacio.biblioteca}</td>
 
-                  <td>
+                  {/* Separación aplicada mediante flex y gap */}
+                  <td style={{ display: 'flex', gap: '10px' }}>
                     <button
                       className="btn btn-success"
                       onClick={() =>

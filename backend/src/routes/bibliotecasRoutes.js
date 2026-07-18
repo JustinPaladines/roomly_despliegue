@@ -1,29 +1,17 @@
 const express = require("express");
 const router = express.Router();
+
 const { supabaseAdmin } = require("../supabaseClients");
 
+//get de todas las bibliotecas
 router.get("/", async (req, res) => {
-    const { data, error } = await supabaseAdmin
-        .from("espacios")
-        .select("*")
-        .order("id", { ascending: true });
-
-    if (error) {
-        return res.status(500).json({ mensaje: error.message });
-    }
-
-    res.json(data);
-});
-
-// obtener espacios disponibles para estudiantes
-router.get("/available", async (req, res) => {
 
     const { data, error } = await supabaseAdmin
-        .from("espacios")
+        .from("bibliotecas")
         .select("*")
-        .eq("estado", "disponible")
-        .order("id", { ascending: true });
-
+        .order("id", {
+            ascending: true
+        });
 
     if (error) {
         return res.status(500).json({
@@ -32,70 +20,96 @@ router.get("/available", async (req, res) => {
     }
 
     res.json(data);
+
 });
 
+
+// crear biblioteca
 router.post("/", async (req, res) => {
+
     const {
         nombre,
-        descripcion,
-        capacidad,
         ubicacion,
-        estado,
-        biblioteca
+        horario_apertura,
+        horario_cierre,
+        estado
     } = req.body;
 
     const { data, error } = await supabaseAdmin
-        .from("espacios")
+        .from("bibliotecas")
         .insert([
             {
                 nombre,
-                descripcion,
-                capacidad,
                 ubicacion,
-                estado,
-                biblioteca
+                horario_apertura,
+                horario_cierre,
+                estado: estado || "activa"
             }
         ])
         .select();
 
     if (error) {
-        return res.status(500).json({ mensaje: error.message });
+        return res.status(500).json({
+            mensaje: error.message
+        });
     }
+
 
     res.status(201).json(data);
+
 });
 
+
+// actualizar biblioteca
 router.put("/:id", async (req, res) => {
+
     const { id } = req.params;
+
+    const {
+        nombre,
+        ubicacion,
+        horario_apertura,
+        horario_cierre
+    } = req.body;
 
     const { data, error } = await supabaseAdmin
-        .from("espacios")
-        .update(req.body)
+        .from("bibliotecas")
+        .update({
+            nombre,
+            ubicacion,
+            horario_apertura,
+            horario_cierre
+        })
         .eq("id", id)
         .select();
-
     if (error) {
-        return res.status(500).json({ mensaje: error.message });
+        return res.status(500).json({
+            mensaje: error.message
+        });
     }
-
     res.json(data);
+
 });
 
-router.delete("/:id", async (req, res) => {
-    const { id } = req.params;
 
+// eliminar bibliotecas
+router.delete("/:id", async (req, res) => {
+
+    const { id } = req.params;
     const { error } = await supabaseAdmin
-        .from("espacios")
+        .from("bibliotecas")
         .delete()
         .eq("id", id);
-
     if (error) {
-        return res.status(500).json({ mensaje: error.message });
+        return res.status(500).json({
+            mensaje: error.message
+        });
     }
-
     res.json({
-        mensaje: "Espacio eliminado correctamente"
+        mensaje: "Biblioteca eliminada correctamente"
     });
+
 });
+
 
 module.exports = router;

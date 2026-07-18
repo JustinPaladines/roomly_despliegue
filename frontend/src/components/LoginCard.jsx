@@ -1,9 +1,8 @@
 // src/components/LoginCard.jsx
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import { supabase } from "../services/supabase";
-import { Link, useNavigate } from "react-router-dom";
-import "../styles/loginCard.css"; 
+import { useNavigate } from "react-router-dom";
+import "../styles/loginCard.css";
 
 export default function LoginCard() {
   const [email, setEmail] = useState("");
@@ -11,64 +10,68 @@ export default function LoginCard() {
   const [showPassword, setShowPassword] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [tipoMensaje, setTipoMensaje] = useState("");
+  const [cargando, setCargando] = useState(false);
+  
   const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-  // VALIDACIÓN CAMPOS
   const validarCampos = () => {
     if (!email || !password) {
       setMensaje("Todos los campos son obligatorios");
       setTipoMensaje("error");
       return false;
     }
-
     if (!email.includes("@")) {
       setMensaje("Correo electrónico inválido");
       setTipoMensaje("error");
       return false;
     }
-
     if (password.length < 6) {
       setMensaje("La contraseña debe tener al menos 6 caracteres");
       setTipoMensaje("error");
       return false;
     }
-
     return true;
   };
 
-  // LOGIN
-    const handleLogin = async () => {
+  const handleLogin = async () => {
     setMensaje("");
+    setCargando(true);
 
-    if (!validarCampos()) return;
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      setMensaje(error.message);
-      setTipoMensaje("error");
+    if (!validarCampos()) {
+      setCargando(false);
       return;
     }
 
-    const { data: usuario, error: rolError } = await supabase
-      .from("usuarios")
-      .select("rol")
-      .eq("id", data.user.id)
-      .single();
+    try {
+      // enviar credenciales al Backend (no a Supabase directamente)
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (rolError) {
-      setMensaje("No se pudo obtener el rol del usuario");
-      setTipoMensaje("error");
-      return;
-    }
+      const data = await response.json();
 
-    setMensaje("Inicio de sesión exitoso");
-    setTipoMensaje("success");
+      if (!response.ok) {
+        // El backend ya validó el estado, intentos y bloqueos
+        setMensaje(data.error || "Error al iniciar sesión");
+        setTipoMensaje("error");
+        return;
+      }
 
-    switch (usuario.rol) {
+      // login exitoso, backend reinicia los intentos y verifica el estado
+      setMensaje("Inicio de sesión exitoso");
+      setTipoMensaje("success");
+
+      // Guardar datos en localStorage (o Context)
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+      }
+
+      // redirigir según el rol que devuelve el backend
+      switch (data.user.rol) {
       case "administrador":
         navigate("/admin/dashboard");
         break;
@@ -83,10 +86,17 @@ export default function LoginCard() {
 
       default:
         navigate("/unauthorized");
+}
+
+    } catch (err) {
+      console.error("Error de conexión:", err);
+      setMensaje("No se pudo conectar con el servidor. Intenta más tarde.");
+      setTipoMensaje("error");
+    } finally {
+      setCargando(false);
     }
   };
 
-  // REGISTRO
   const handleRegister = () => {
     navigate("/Registro");
   };
@@ -94,14 +104,11 @@ export default function LoginCard() {
   return (
     <div className="card-wrapper">
       <div className="card-inner">
-
-        {/* TITULO */}
         <div className="card-header">
           <h1 className="card-title">¡Bienvenido!</h1>
           <p className="card-subtitle">Inicia sesión en tu cuenta</p>
         </div>
 
-        
         {mensaje && (
           <div className={`message-box ${tipoMensaje === "error" ? "message-error" : "message-success"}`}>
             {mensaje}
@@ -109,8 +116,6 @@ export default function LoginCard() {
         )}
 
         <div className="form-group-container">
-
-          {/* EMAIL */}
           <div className="input-group">
             <label className="input-label">Correo electrónico</label>
             <input
@@ -119,10 +124,10 @@ export default function LoginCard() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="input-field"
+              disabled={cargando}
             />
           </div>
 
-          {/* PASSWORD */}
           <div className="input-group">
             <label className="input-label">Contraseña</label>
             <div className="input-field-wrapper">
@@ -132,36 +137,34 @@ export default function LoginCard() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="input-field"
+                disabled={cargando}
               />
-
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="toggle-password-btn"
+                disabled={cargando}
               >
-                {showPassword ? <EyeOff size={18}/> : <Eye size={18}/>}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
 
-          {/* OPCIONES */}
           <div className="options-container">
-            <Link to="/olvide-contrasena" className="forgot-password-link">
+            <a href="/olvide-contrasena" className="forgot-password-link">
               ¿Olvidaste tu contraseña?
-            </Link>
+            </a>
           </div>
 
-          {/* BOTONES */}
           <div className="action-buttons-container">
-            <button onClick={handleLogin} className="primary-btn">
-              Iniciar sesión
+            <button onClick={handleLogin} className="primary-btn" disabled={cargando}>
+              {cargando ? "Procesando..." : "Iniciar sesión"}
             </button>
 
-            <button onClick={handleRegister} className="secondary-btn">
+            <button onClick={handleRegister} className="secondary-btn" disabled={cargando}>
               Registrarse
             </button>
           </div>
-
         </div>
       </div>
     </div>

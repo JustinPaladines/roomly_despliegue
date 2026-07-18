@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../services/supabase";
 import "../styles/buscarEspacios.css";
 import "../styles/global.css";
+import api from "../services/api";
 
 const BuscarEspacios = () => {
     const navigate = useNavigate();
@@ -19,22 +19,27 @@ const BuscarEspacios = () => {
     }, []);
 
     const obtenerEspacios = async () => {
-        const { data, error } = await supabase
-            .from("espacios")
-            .select("*")
-            .eq("estado", "disponible")
-            .order("id", { ascending: true });
 
-        if (error) {
-            console.error(error);
-            alert("Error al cargar espacios");
-            return;
-        }
+    try {
+
+        const data = await api("/api/espacios/available");
+
 
         setEspacios(data);
         setEspaciosFiltrados(data);
+
+
+    } catch (error) {
+
+        console.error(error);
+        alert("Error al cargar espacios");
+
+    } finally {
+
         setLoading(false);
-    };
+
+    }
+};
 
     const buscarEspacios = () => {
         let resultado = [...espacios];

@@ -35,6 +35,12 @@ import GestionBibliotecas from "./pages/GestionBibliotecas";
 // chat IA
 import ChatIA from "./pages/ChatIA";
 
+// gestion de usuarios
+import GestionUsuarios from "./pages/GestionUsuarios";
+
+// atención a estudiantes
+import AtencionEstudiantes from "./pages/AtencionEstudiantes";
+
 
 export default function App() {
   return (
@@ -62,6 +68,7 @@ export default function App() {
         <Route path="/admin/espacios" element={<GestionEspacios />} />
         <Route path="/admin/reservas" element={<GestionReservasBibliotecario/>} />
         <Route path="/admin/bibliotecas" element={<GestionBibliotecas />} />
+        <Route path="/admin/usuarios" element={<GestionUsuarios />} />
       </Route>
 
       {/* bibliotecario */}
@@ -69,6 +76,7 @@ export default function App() {
         <Route path="/bibliotecario/dashboard" element={<DashboardBibliotecario />} />
         <Route path="/bibliotecario/espacios" element={<GestionEspacios />} />
         <Route path="/bibliotecario/reservas" element={<GestionReservasBibliotecario/>} />
+        <Route path="/bibliotecario/estudiantes" element={<AtencionEstudiantes />}/>
       </Route>
 
       {/* estudiante */}

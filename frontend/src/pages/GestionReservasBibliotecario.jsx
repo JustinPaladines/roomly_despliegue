@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../services/supabase";
+import api from "../services/api";
 import "../styles/global.css";
 
 const GestionReservasBibliotecario = () => {
     const navigate = useNavigate();
-
     const [reservas, setReservas] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -14,148 +13,162 @@ const GestionReservasBibliotecario = () => {
     }, []);
 
     const obtenerReservas = async () => {
-        const { data, error } = await supabase
-            .from("reservas")
-            .select("*")
-            .order("id", { ascending: false });
-
-        if (error) {
-            console.error(error);
-            return;
+        try {
+            const data = await api("/api/reservations");
+            setReservas(data);
+        } catch (error) {
+            console.error("Error cargando reservas:", error);
+        } finally {
+            setLoading(false);
         }
-
-        setReservas(data);
-        setLoading(false);
     };
 
     const cancelarReserva = async (id) => {
-        const confirmar = window.confirm(
-            "¿Desea cancelar esta reserva?"
-        );
+        if (!window.confirm("¿Cancelar reserva?")) return;
 
-        if (!confirmar) return;
-
-        const { error } = await supabase
-            .from("reservas")
-            .update({
-                estado: "cancelada"
-            })
-            .eq("id", id);
-
-        if (error) {
+        try {
+            await api(`/api/reservations/${id}/cancel`, {
+                method: "PATCH"
+            });
+            obtenerReservas();
+        } catch (error) {
             alert(error.message);
-            return;
         }
+    };
 
-        obtenerReservas();
+    const confirmarReserva = async (id) => {
+        try {
+            await api(`/api/reservations/${id}/check-in`, {
+                method: "PATCH"
+            });
+            obtenerReservas();
+        } catch (error) {
+            alert(error.message);
+        }
     };
 
     const finalizarReserva = async (id) => {
-        const confirmar = window.confirm(
-            "¿Desea finalizar esta reserva?"
-        );
-
-        if (!confirmar) return;
-
-        const { error } = await supabase
-            .from("reservas")
-            .update({
-                estado: "finalizada",
-                finalizada_at: new Date().toISOString()
-            })
-            .eq("id", id);
-
-        if (error) {
+        try {
+            await api(`/api/reservations/${id}/finish`, {
+                method: "PATCH"
+            });
+            obtenerReservas();
+        } catch (error) {
             alert(error.message);
-            return;
         }
-
-        obtenerReservas();
     };
 
     return (
-    <div className="page-container">
-        <h1 className="page-title">
-            Gestión de Reservas
-        </h1>
+        <div className="page-container">
+            <h1 className="page-title">
+                Gestión de Reservas
+            </h1>
 
-        <div className="page-actions">
             <button
                 className="btn btn-danger btn-back"
                 onClick={() => navigate(-1)}
             >
                 Regresar
             </button>
-        </div>
 
-        <hr className="section-divider" />
+            <hr className="section-divider" />
 
-        {loading ? (
-            <p className="loading">
-                Cargando reservas...
-            </p>
-        ) : (
-            <div className="table-container">
-                <table className="data-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Usuario</th>
-                            <th>Espacio</th>
-                            <th>Fecha</th>
-                            <th>Hora</th>
-                            <th>Estado</th>
-                            <th>Observación</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {reservas.map((reserva) => (
-                            <tr key={reserva.id}>
-                                <td>{reserva.id}</td>
-                                <td>{reserva.usuario_id}</td>
-                                <td>{reserva.espacio_id}</td>
-                                <td>{reserva.fecha}</td>
-                                <td>{reserva.hora_inicio}</td>
-                                <td>{reserva.estado}</td>
-                                <td>{reserva.observacion}</td>
-
-                                <td>
-                                    {reserva.estado === "activa" && (
-                                        <>
-                                            <button
-                                                className="btn btn-success"
-                                                onClick={() =>
-                                                    finalizarReserva(
-                                                        reserva.id
-                                                    )
-                                                }
-                                            >
-                                                Finalizar
-                                            </button>
-
-                                            <button
-                                                className="btn btn-danger spacer-xs"
-                                                onClick={() =>
-                                                    cancelarReserva(
-                                                        reserva.id
-                                                    )
-                                                }
-                                            >
-                                                Cancelar
-                                            </button>
-                                        </>
-                                    )}
-                                </td>
+            {loading ? (
+                <p>
+                    Cargando reservas...
+                </p>
+            ) : (
+                <div className="table-container">
+                    <table className="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Usuario</th>
+                                <th>Espacio</th>
+                                <th>Fecha</th>
+                                <th>Inicio</th>
+                                <th>Observación</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        )}
-    </div>
-);
-}
+                        </thead>
+
+                        <tbody>
+                            {reservas.length > 0 ? (
+                                reservas.map((reserva) => (
+                                    <tr key={reserva.id}>
+                                        <td>
+                                            {reserva.id}
+                                        </td>
+
+                                        <td>
+                                            {reserva.usuario_nombre || reserva.usuario_correo || reserva.usuario_id}
+                                        </td>
+
+                                        <td>
+                                            {reserva.espacio_nombre || reserva.espacio_id}
+                                        </td>
+
+                                        <td>
+                                            {reserva.fecha}
+                                        </td>
+
+                                        <td>
+                                            {reserva.hora_inicio}
+                                        </td>
+
+                                        <td>
+                                            {reserva.observacion || "Sin observación"}
+                                        </td>
+
+                                        <td>
+                                            {reserva.estado}
+                                        </td>
+
+                                        <td>
+                                            {reserva.estado === "pendiente" && (
+                                                <button
+                                                    className="btn btn-success"
+                                                    onClick={() => confirmarReserva(reserva.id)}
+                                                >
+                                                    Confirmar
+                                                </button>
+                                            )}
+
+                                            {reserva.estado === "confirmada" && (
+                                                <button
+                                                    className="btn btn-primary"
+                                                    onClick={() => finalizarReserva(reserva.id)}
+                                                >
+                                                    Finalizar
+                                                </button>
+                                            )}
+
+                                            {reserva.estado !== "cancelada" &&
+                                                reserva.estado !== "finalizada" && (
+                                                    <button
+                                                        className="btn btn-danger"
+                                                        onClick={() => cancelarReserva(reserva.id)}
+                                                    >
+                                                        Cancelar
+                                                    </button>
+                                                )}
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="8">
+                                        No existen reservas.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+        </div>
+    );
+};
 
 export default GestionReservasBibliotecario;

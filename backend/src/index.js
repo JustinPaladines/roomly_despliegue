@@ -6,12 +6,23 @@ const cors = require('cors');
 const verificarSupabaseToken = require('./authMiddleware');
 const espaciosRoutes = require("./routes/espaciosRoutes");
 const { generarRespuesta } = require("./services/huggingface");
-
+const usuariosRoutes = require("./routes/usuariosRoutes");
+const authRoutes = require("./routes/authRoutes");
+const reservasRoutes = require("./routes/reservasRoutes");
+const bibliotecasRoutes = require("./routes/bibliotecasRoutes");
+const perfilRoutes = require("./routes/perfilRoutes");
+const atencionRoutes = require("./routes/atencionRoutes");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use("/api/espacios", espaciosRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/reservations", reservasRoutes);
+app.use("/api/libraries", bibliotecasRoutes);
+app.use("/api/usuarios", usuariosRoutes);
+app.use("/api/perfil", perfilRoutes);
+app.use("/api/atencion", atencionRoutes);
 
 // ruta protegida, Solo si el token es válido, se ejecuta lo de adentro
 app.get('/api/usuarios', verificarSupabaseToken, (req, res) => {

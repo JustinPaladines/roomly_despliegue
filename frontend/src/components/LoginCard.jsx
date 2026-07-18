@@ -37,6 +37,7 @@ export default function LoginCard() {
   console.log("ENV:", import.meta.env);
   console.log("VITE_API_URL:", import.meta.env.VITE_API_URL);
   console.log("API_URL:", API_URL);
+  console.log(import.meta.env);
 
   const handleLogin = async () => {
     setMensaje("");

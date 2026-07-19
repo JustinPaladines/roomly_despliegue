@@ -12,6 +12,7 @@ const reservasRoutes = require("./routes/reservasRoutes");
 const bibliotecasRoutes = require("./routes/bibliotecasRoutes");
 const perfilRoutes = require("./routes/perfilRoutes");
 const atencionRoutes = require("./routes/atencionRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 
 const app = express();
 app.use(cors());
@@ -23,6 +24,7 @@ app.use("/api/libraries", bibliotecasRoutes);
 app.use("/api/usuarios", usuariosRoutes);
 app.use("/api/perfil", perfilRoutes);
 app.use("/api/atencion", atencionRoutes);
+app.use("/api/chat", chatRoutes);
 
 // ruta protegida, Solo si el token es válido, se ejecuta lo de adentro
 app.get('/api/usuarios', verificarSupabaseToken, (req, res) => {

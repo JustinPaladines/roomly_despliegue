@@ -11,8 +11,6 @@ const GestionReservas = () => {
     const [espacioId, setEspacioId] = useState("");
     const [fecha, setFecha] = useState("");
     const [horaInicio, setHoraInicio] = useState("");
-    const [horaFin, setHoraFin] = useState("");
-    const [observacion, setObservacion] = useState("");
 
     useEffect(() => {
         obtenerEspacios();
@@ -48,7 +46,7 @@ const GestionReservas = () => {
         return false;
         }
 
-        if (!horaInicio || !horaFin) {
+        if (!horaInicio) {
         alert("Ingrese horario completo");
         return false;
         }
@@ -86,10 +84,7 @@ const GestionReservas = () => {
                 usuario_id:user.id,
                 espacio_id:Number(espacioId),
                 fecha,
-                hora_inicio:horaInicio,
-                hora_fin:horaFin,
-                estado:"pendiente",
-                observacion
+                hora_inicio:horaInicio
             })
             }
         );
@@ -101,8 +96,6 @@ const GestionReservas = () => {
         setEspacioId("");
         setFecha("");
         setHoraInicio("");
-        setHoraFin("");
-        setObservacion("");
         }catch(error){
         console.error(error);
         alert(
@@ -178,31 +171,6 @@ const GestionReservas = () => {
             value={horaInicio}
             onChange={
                 e=>setHoraInicio(e.target.value)
-            }
-            />
-
-            <label>
-            Hora fin:
-            </label>
-
-            <input
-            className="form-input"
-            type="time"
-            value={horaFin}
-            onChange={
-                e=>setHoraFin(e.target.value)
-            }
-            />
-
-            <label>
-            Observación:
-            </label>
-
-            <input
-            className="form-input"
-            value={observacion}
-            onChange={
-                e=>setObservacion(e.target.value)
             }
             />
 

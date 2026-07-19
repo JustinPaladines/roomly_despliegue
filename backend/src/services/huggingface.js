@@ -60,11 +60,9 @@ Cuando un estudiante desea utilizar un espacio:
 
 Puedes explicar el significado de estados como:
 
-- Pendiente
-- Confirmada
+- Activa
 - Cancelada
 - Finalizada
-- Expirada
 
 Nunca afirmes que una reserva específica tiene uno de estos estados.
 

@@ -36,6 +36,19 @@ router.post("/", async (req, res) => {
         estado
     } = req.body;
 
+    // verificar si ya existe una biblioteca con ese nombre
+    const { data: existente } = await supabaseAdmin
+        .from("bibliotecas")
+        .select("id")
+        .ilike("nombre", nombre)
+        .maybeSingle();
+
+    if (existente) {
+        return res.status(400).json({
+            mensaje: "Ya existe una biblioteca con ese nombre."
+        });
+    }
+
     const { data, error } = await supabaseAdmin
         .from("bibliotecas")
         .insert([
@@ -55,7 +68,6 @@ router.post("/", async (req, res) => {
         });
     }
 
-
     res.status(201).json(data);
 
 });
@@ -73,6 +85,20 @@ router.put("/:id", async (req, res) => {
         horario_cierre
     } = req.body;
 
+    // verificar si el nombre ya existe en otra biblioteca
+    const { data: existente } = await supabaseAdmin
+        .from("bibliotecas")
+        .select("id")
+        .ilike("nombre", nombre)
+        .neq("id", id)
+        .maybeSingle();
+
+    if (existente) {
+        return res.status(400).json({
+            mensaje: "Ya existe una biblioteca con ese nombre."
+        });
+    }
+
     const { data, error } = await supabaseAdmin
         .from("bibliotecas")
         .update({
@@ -83,11 +109,13 @@ router.put("/:id", async (req, res) => {
         })
         .eq("id", id)
         .select();
+
     if (error) {
         return res.status(500).json({
             mensaje: error.message
         });
     }
+
     res.json(data);
 
 });

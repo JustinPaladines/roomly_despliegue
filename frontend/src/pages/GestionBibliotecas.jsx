@@ -33,12 +33,17 @@ const GestionBibliotecas = () => {
     const validarFormulario = () => {
         if (!nombre.trim()) { alert("El nombre es obligatorio"); return false; }
         if (nombre.trim().length < 3) { alert("El nombre debe tener al menos 3 caracteres"); return false; }
+        const soloTexto = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+        if (!soloTexto.test(nombre.trim())) {alert("El nombre de la biblioteca solo puede contener letras.");
+        return false;}
         if (!ubicacion.trim()) { alert("La ubicación es obligatoria"); return false; }
         if (!horarioApertura) { alert("Debe ingresar la hora de apertura"); return false; }
         if (!horarioCierre) { alert("Debe ingresar la hora de cierre"); return false; }
         if (horarioApertura >= horarioCierre) { alert("La hora de apertura debe ser menor a la hora de cierre"); return false; }
+
         return true;
     };
+
 
     const limpiarFormulario = () => {
         setNombre("");
@@ -114,7 +119,9 @@ const GestionBibliotecas = () => {
             <form className="form-card formulario-gestion" onSubmit={modoEdicion ? actualizarBiblioteca : crearBiblioteca}>
                 <input className="form-input" type="text" placeholder="Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} />
                 <input className="form-input" type="text" placeholder="Ubicación" value={ubicacion} onChange={(e) => setUbicacion(e.target.value)} />
+                <label className="form-label">Horario de Apertura</label>
                 <input className="form-input" type="time" value={horarioApertura} onChange={(e) => setHorarioApertura(e.target.value)} />
+                <label className="form-label">Horario de Cierre</label>
                 <input className="form-input" type="time" value={horarioCierre} onChange={(e) => setHorarioCierre(e.target.value)} />
                 <button type="submit" className={`btn ${modoEdicion ? "btn-success" : "btn-primary"}`}>
                     {modoEdicion ? "Actualizar Biblioteca" : "Crear Biblioteca"}

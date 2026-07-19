@@ -11,8 +11,6 @@ router.post("/", async (req, res) => {
             espacio_id,
             fecha,
             hora_inicio,
-            estado,
-            observacion
         } = req.body;
 
         const { data, error } = await supabaseAdmin
@@ -22,16 +20,30 @@ router.post("/", async (req, res) => {
                 espacio_id,
                 fecha,
                 hora_inicio,
-                estado: estado || "pendiente",
-                observacion
+                estado: "activa",
             }])
             .select();
 
         if (error) {
             return res.status(500).json({ mensaje: error.message });
         }
+        // cambiar estado del espacio a "ocupado"
+        const { error: espacioError } = await supabaseAdmin
+            .from("espacios")
+            .update({
+                estado: "ocupado"
+            })
+            .eq("id", espacio_id);
 
+        // si falla la actualización del espacio, es un error del servidor
+        if (espacioError) {
+            console.error("Error al actualizar el espacio:", espacioError);
+            return res.status(500).json({ mensaje: espacioError.message });
+        }
+
+        // respuesta exitosa
         res.status(201).json(data);
+
     } catch (error) {
         res.status(500).json({ mensaje: error.message });
     }
@@ -200,6 +212,20 @@ router.patch("/:id/cancel", async (req, res) => {
     try {
         const { id } = req.params;
 
+        // obtener el espacio asociado a la reserva
+        const { data: reserva, error: reservaError } = await supabaseAdmin
+            .from("reservas")
+            .select("espacio_id")
+            .eq("id", id)
+            .single();
+
+        if (reservaError) {
+            return res.status(404).json({
+                mensaje: "Reserva no encontrada"
+            });
+        }
+
+        // cambiar estado de la reserva
         const { data, error } = await supabaseAdmin
             .from("reservas")
             .update({
@@ -215,34 +241,25 @@ router.patch("/:id/cancel", async (req, res) => {
             });
         }
 
-        res.json(data);
-    } catch (error) {
-        res.status(500).json({ mensaje: error.message });
-    }
-});
-
-// Confirmar asistencia
-router.patch("/:id/check-in", async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        const { data, error } = await supabaseAdmin
-            .from("reservas")
+        // liberar el espacio
+        const { error: espacioError } = await supabaseAdmin
+            .from("espacios")
             .update({
-                estado: "confirmada"
+                estado: "disponible"
             })
-            .eq("id", id)
-            .select();
+            .eq("id", reserva.espacio_id);
 
-        if (error) {
+        if (espacioError) {
             return res.status(500).json({
-                mensaje: error.message
+                mensaje: espacioError.message
             });
         }
 
         res.json(data);
     } catch (error) {
-        res.status(500).json({ mensaje: error.message });
+        res.status(500).json({
+            mensaje: error.message
+        });
     }
 });
 
@@ -251,6 +268,20 @@ router.patch("/:id/finish", async (req, res) => {
     try {
         const { id } = req.params;
 
+        // obtener el espacio asociado a la reserva
+        const { data: reserva, error: reservaError } = await supabaseAdmin
+            .from("reservas")
+            .select("espacio_id")
+            .eq("id", id)
+            .single();
+
+        if (reservaError) {
+            return res.status(404).json({
+                mensaje: "Reserva no encontrada"
+            });
+        }
+
+        // cambiar estado de la reserva
         const { data, error } = await supabaseAdmin
             .from("reservas")
             .update({
@@ -266,9 +297,25 @@ router.patch("/:id/finish", async (req, res) => {
             });
         }
 
+        // liberar el espacio
+        const { error: espacioError } = await supabaseAdmin
+            .from("espacios")
+            .update({
+                estado: "disponible"
+            })
+            .eq("id", reserva.espacio_id);
+
+        if (espacioError) {
+            return res.status(500).json({
+                mensaje: espacioError.message
+            });
+        }
+
         res.json(data);
     } catch (error) {
-        res.status(500).json({ mensaje: error.message });
+        res.status(500).json({
+            mensaje: error.message
+        });
     }
 });
 

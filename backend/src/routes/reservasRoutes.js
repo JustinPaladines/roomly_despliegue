@@ -75,7 +75,6 @@ router.post("/", async (req, res) => {
             cantidad_estudiantes
         } = req.body;
 
-        // Extraer usuario desde el Token JWT si no viene en el cuerpo de la solicitud
         const header = req.headers.authorization || "";
         const token = header.startsWith("Bearer ") ? header.slice(7) : null;
         if (!usuario_id && token) {
@@ -123,7 +122,6 @@ router.post("/", async (req, res) => {
             });
         }
 
-        // VALIDACIÓN DE RESERVAS ACTIVAS CORREGIDA (Sin falsos positivos)
         const { data: reservasActivasUsuario, error: reservaUsuarioError } = await supabaseAdmin
             .from("reservas")
             .select("id, fecha, hora_fin, estado")
@@ -137,15 +135,15 @@ router.post("/", async (req, res) => {
 
         const tieneReservaVigente = (reservasActivasUsuario || []).some(reserva => {
             if (reserva.fecha > fecha) return true;
-            
+
             const finStr = String(reserva.hora_fin || "").slice(0, 5);
-            const ahoraStr = new Date().toLocaleTimeString("es-EC", { 
-                hour: '2-digit', 
-                minute: '2-digit', 
-                hour12: false, 
-                timeZone: "America/Guayaquil" 
+            const ahoraStr = new Date().toLocaleTimeString("es-EC", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+                timeZone: "America/Guayaquil"
             });
-            
+
             return finStr > ahoraStr;
         });
 
@@ -237,7 +235,8 @@ router.post("/", async (req, res) => {
                 hora_inicio: inicio,
                 hora_fin: fin,
                 cantidad_estudiantes: cantidad,
-                estado: "activa"
+                estado: "activa",
+                modificaciones_realizadas: 0
             }])
             .select();
 
@@ -357,24 +356,62 @@ router.get("/user/:usuario_id", async (req, res) => {
     }
 });
 
-// /api/reservas/:id (CANCELAR RESERVA MÓVIL ESTUDIANTE)
-router.delete("/:id", async (req, res) => {
+// Handler unificado para cancelar reserva (Estudiantes dueños y Bibliotecarios/Admin)
+async function cancelarReservaHandler(req, res) {
     try {
         await caducarReservasVencidas();
-        const { id } = req.params;
 
+        const header = req.headers.authorization || "";
+        const token = header.startsWith("Bearer ") ? header.slice(7) : null;
+        if (!token) return res.status(401).json({ mensaje: "Token requerido." });
+
+        const { data: authData, error: authError } = await supabaseAuth.auth.getUser(token);
+        if (authError || !authData.user) {
+            return res.status(401).json({ mensaje: "Token inválido." });
+        }
+
+        const { data: usuario, error: usuarioError } = await supabaseAdmin
+            .from("usuarios")
+            .select("id, rol, estado, biblioteca_id")
+            .eq("id", authData.user.id)
+            .maybeSingle();
+
+        if (usuarioError || !usuario || usuario.estado !== "activo") {
+            return res.status(403).json({ mensaje: "Usuario no autorizado." });
+        }
+
+        const { id } = req.params;
         const { data: reservaCompleta, error: consultaError } = await supabaseAdmin
             .from("reservas")
-            .select("espacio_id, cantidad_estudiantes, estado, observacion")
+            .select("id, usuario_id, espacio_id, cantidad_estudiantes, estado, observacion")
             .eq("id", id)
             .maybeSingle();
 
         if (consultaError || !reservaCompleta) {
-            return res.status(404).json({ mensaje: "Reserva no encontrada" });
+            return res.status(404).json({ mensaje: "Reserva no encontrada." });
         }
 
         if (String(reservaCompleta.observacion || "").startsWith("Reserva_Compartida")) {
             return res.status(409).json({ mensaje: "Las reservas compartidas se gestionan desde espacios compartidos." });
+        }
+
+        // Validación de permisos por rol
+        if (usuario.rol === "estudiante") {
+            if (reservaCompleta.usuario_id !== usuario.id) {
+                return res.status(403).json({ mensaje: "Solo puedes cancelar tus propias reservas." });
+            }
+        } else if (usuario.rol === "bibliotecario") {
+            const { data: espacio } = await supabaseAdmin
+                .from("espacios")
+                .select("biblioteca_id")
+                .eq("id", reservaCompleta.espacio_id)
+                .maybeSingle();
+
+            if (!espacio || Number(espacio.biblioteca_id) !== Number(usuario.biblioteca_id)) {
+                return res.status(403).json({ mensaje: "No puedes realizar acciones en reservas de otra biblioteca." });
+            }
+        } else if (usuario.rol !== "administrador") {
+            return res.status(403).json({ mensaje: "No tienes permisos para esta acción." });
         }
 
         if (!["activa", "en progreso"].includes(reservaCompleta.estado)) {
@@ -384,7 +421,7 @@ router.delete("/:id", async (req, res) => {
         const { data, error } = await supabaseAdmin
             .from("reservas")
             .update({
-                estado: "caducada",
+                estado: "cancelada",
                 finalizada_at: new Date().toISOString()
             })
             .eq("id", id)
@@ -418,8 +455,13 @@ router.delete("/:id", async (req, res) => {
     } catch (error) {
         return res.status(500).json({ mensaje: error.message });
     }
-});
+}
 
+// Ambas rutas soportan cancelación con estado "cancelada"
+router.delete("/:id", cancelarReservaHandler);
+router.patch("/:id/cancel", cancelarReservaHandler);
+
+// PUT /api/reservas/:id (Editar reserva - Estudiante)
 router.put("/:id", async (req, res) => {
     try {
         const header = req.headers.authorization || "";
@@ -550,67 +592,6 @@ router.patch("/:id/check-in", verificarBibliotecaBibliotecario, validarReservaDe
             await supabaseAdmin.from("reservas").update({ estado: "activa" }).eq("id", id).eq("estado", "en progreso");
             return res.status(500).json({ mensaje: sillasError.message });
         }
-        res.json(data);
-    } catch (error) {
-        res.status(500).json({ mensaje: error.message });
-    }
-});
-
-// PATCH /api/reservas/:id/cancel (Cancelar reserva - Bibliotecario)
-router.patch("/:id/cancel", verificarBibliotecaBibliotecario, validarReservaDeBiblioteca, async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        const { data: reservaCompleta, error: consultaError } = await supabaseAdmin
-            .from("reservas")
-            .select("espacio_id, cantidad_estudiantes, estado, observacion")
-            .eq("id", id)
-            .single();
-
-        if (consultaError || !reservaCompleta) {
-            return res.status(404).json({ mensaje: "Reserva no encontrada" });
-        }
-
-        if (String(reservaCompleta.observacion || "").startsWith("Reserva_Compartida")) {
-            return res.status(409).json({ mensaje: "Las reservas compartidas se gestionan desde espacios compartidos." });
-        }
-
-        if (!["activa", "en progreso"].includes(reservaCompleta.estado)) {
-            return res.status(409).json({ mensaje: "La reserva ya no está activa." });
-        }
-
-        const { data, error } = await supabaseAdmin
-            .from("reservas")
-            .update({
-                estado: "caducada",
-                finalizada_at: new Date().toISOString()
-            })
-            .eq("id", id)
-            .in("estado", ["activa", "en progreso"])
-            .select();
-
-        if (error) return res.status(500).json({ mensaje: error.message });
-
-        if (reservaCompleta.estado === "en progreso") {
-            const { data: espacioActual } = await supabaseAdmin
-                .from("espacios")
-                .select("sillas_ocupadas_externas")
-                .eq("id", reservaCompleta.espacio_id)
-                .maybeSingle();
-
-            if (espacioActual) {
-                await supabaseAdmin
-                    .from("espacios")
-                    .update({
-                        sillas_ocupadas_externas: Math.max(
-                            0,
-                            Number(espacioActual.sillas_ocupadas_externas || 0) - Number(reservaCompleta.cantidad_estudiantes || 1)
-                        )
-                    })
-                    .eq("id", reservaCompleta.espacio_id);
-            }
-        }
-
         res.json(data);
     } catch (error) {
         res.status(500).json({ mensaje: error.message });
